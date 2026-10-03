@@ -9,6 +9,7 @@
 <body class="bg-gray-100">
     <!-- Навигационное меню -->
     <nav class="bg-white shadow">
+    <a href="{{ route('posts.create') }}" class="text-gray-600 hover:text-gray-800">Новый пост</a>
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" x-data="{ isOpen: false }">
         <div class="flex justify-between h-16">
             <div class="flex items-center">
@@ -35,6 +36,13 @@
 
     <!-- Контент страницы -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        @if (session('success'))
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+            <div class="bg-green-100 border border-green-300 text-green-800 rounded-md p-4">
+            {{ session('success') }}
+            </div>
+        </div>
+        @endif
         @yield('content')
     </div>
 </body>
