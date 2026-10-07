@@ -9,7 +9,6 @@
 <body class="bg-gray-100">
     <!-- Навигационное меню -->
     <nav class="bg-white shadow">
-    <a href="{{ route('posts.create') }}" class="text-gray-600 hover:text-gray-800">Новый пост</a>
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" x-data="{ isOpen: false }">
         <div class="flex justify-between h-16">
             <div class="flex items-center">
@@ -18,6 +17,11 @@
             <div class="hidden md:flex items-center space-x-8">
                 <a href="{{ route('about') }}" class="text-gray-600 hover:text-gray-800">О нас</a>
                 <a href="{{ route('contact') }}" class="text-gray-600 hover:text-gray-800">Контакты</a>
+                <a href="{{ route('posts.create') }}" class="text-gray-600 hover:text-gray-800">Новый пост</a>
+                <a href="{{ route('posts.index') }}"
+                class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium {{ request()->routeIs('posts.index') ? 'text-blue-600' : '' }}">
+                Все посты
+                </a>
             </div>
             <div class="md:hidden flex items-center">
                 <button @click="isOpen = !isOpen" class="p-2 text-gray-600 hover:text-gray-800" aria-label="Открыть меню">
@@ -30,6 +34,10 @@
         <div x-show="isOpen" @click.outside="isOpen = false" class="md:hidden pb-4 space-y-2">
             <a href="{{ route('about') }}" class="block px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-md">О нас</a>
             <a href="{{ route('contact') }}" class="block px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-md">Контакты</a>
+            <a href="{{ route('posts.index') }}"
+            class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100">
+             Все посты
+            </a>
         </div>
     </div>
     </nav>
