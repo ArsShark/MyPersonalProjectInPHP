@@ -7,56 +7,42 @@ use App\Models\Post;
 use App\Models\Tag;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use App\Models\Comment;
+use Illuminate\Support\Facades\Storage;
 
 class PostController extends Controller
 {
     public function create()
     {
-        return view('posts.create', [
-            'title' => 'Новый пост',
-            'categories' => Category::orderBy('name')->get(),
-        ]);
+        $categories = Category::all();
+        $tags = Tag::all();
+        return view('posts.create', compact('categories', 'tags'));
     }
+
 
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'content' => 'required|string|min:10',
+            'title' => 'required|max:255|unique:posts,title', 
+            'content' => 'required|min:50',
             'category_id' => 'required|exists:categories,id',
-            'tags' => 'required|string',
+            'tags' => 'array|exists:tags,id', 
+            'image' => 'nullable|image|max:2048',
         ]);
 
-        $post = Post::create([
-            'title' => $validated['title'],
-            'content' => $validated['content'],
-            'category_id' => $validated['category_id'],
-            'user_id' => User::first()->id,
-        ]);
+        $postData = $validated;
+        unset($postData['tags']); 
 
-        $tagIds = [];
-        foreach (explode(',', $request->tags) as $tagName) {
-            $tagName = trim($tagName);
+        $post = Post::create($postData + ['user_id' => User::first()->id]);
 
-            if ($tagName === '') {
-                continue;
-            }
+        $post->tags()->sync($request->tags ?? []);
 
-            $tag = Tag::firstOrCreate(
-                ['name' => $tagName],
-                ['slug' => Str::slug($tagName)]
-            );
-
-            $tagIds[$tag->id] = $tag->id;
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')->store('posts', 'public');
+            $post->update(['image' => $path]);
         }
 
-        $post->tags()->attach(array_values($tagIds));
-
-        return redirect()
-            ->route('home')
-            ->with('success', 'Пост успешно создан!');
+        return redirect()->route('posts.index')->with('success', 'Пост создан!');
     }
 
     public function show(Post $post)
@@ -106,4 +92,54 @@ class PostController extends Controller
 
     return view('posts.index', compact('posts', 'sort', 'categories', 'search', 'categoryId', 'stats'));
     }
+    public function edit(Post $post)
+    {
+        $categories = Category::all();
+        $tags = Tag::all();
+        return view('posts.edit', compact('post', 'categories', 'tags'));
+    }
+
+    public function update(Request $request, Post $post)
+    {
+        $validated = $request->validate([
+            'title' => 'required|max:255|unique:posts,title,' . $post->id, 
+            'content' => 'required|min:50',
+            'category_id' => 'required|exists:categories,id',
+            'tags' => 'array|exists:tags,id',
+            'image' => 'nullable|image|max:2048',
+        ]);
+
+        $postData = $validated;
+        unset($postData['tags']);
+        
+        $post->update($postData);
+
+        $post->tags()->sync($request->tags ?? []);
+
+        if ($request->boolean('remove_image')) {
+            if ($post->image) {
+                Storage::delete('public/' . $post->image);
+                $post->update(['image' => null]);
+            }
+        } elseif ($request->hasFile('image')) {
+            if ($post->image) {
+                Storage::delete('public/' . $post->image);
+            }
+            $path = $request->file('image')->store('posts', 'public');
+            $post->update(['image' => $path]);
+        }
+
+        return redirect()->route('posts.index')->with('success', 'Пост обновлен!');
+    }
+
+    public function destroy(Post $post)
+    {
+        if ($post->image) {
+            Storage::delete('public/' . $post->image);
+        }
+        
+        $post->delete();
+        return redirect()->route('posts.index')->with('success', 'Пост удален!');
+    }
+
 }

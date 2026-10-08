@@ -21,6 +21,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        app()->setLocale('ru');
+        
          Category::observe(CategoryObserver::class);
     }
 }
