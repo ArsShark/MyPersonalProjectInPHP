@@ -33,7 +33,55 @@
             </span>
         @endforeach
     </div>
+    {{-- Лаба 6: галерея прикреплённых файлов (диск s3-fake) --}}
+    @if ($post->media->isNotEmpty())
+    <section class="mt-8">
+    <h3 class="text-xl font-semibold text-gray-900 mb-4">
+        Прикреплённые файлы ({{ $post->media->count() }})
+    </h3>
 
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+        @foreach ($post->media as $media)
+            <div class="relative border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm">
+                @if (Str::startsWith($media->type, 'image'))
+                    {{-- Картинки: превью на весь тайл --}}
+                    <img src="{{ Storage::disk('s3-fake')->url($media->path) }}"
+                         alt="Прикреплённый файл"
+                         class="w-full h-48 object-cover">
+                @else
+                    {{-- Всё остальное (pdf, mp4...): плитка со ссылкой --}}
+                    <div class="h-48 flex flex-col items-center justify-center p-4 bg-gray-50 text-center">
+                        <span class="text-3xl mb-2">
+                            @if (Str::startsWith($media->type, 'video'))🎬
+                            @elseif ($media->type === 'application/pdf')📄
+                            @else📦@endif
+                        </span>
+                        <a href="{{ Storage::disk('s3-fake')->url($media->path) }}" target="_blank"
+                           class="text-sm text-blue-600 hover:underline break-all">
+                            {{ basename($media->path) }}
+                        </a>
+                        <span class="text-xs text-gray-500 mt-1">{{ $media->type }}</span>
+                    </div>
+                @endif
+
+                {{-- Кнопка удаления файла (маршрут posts.deleteFile из партии 2) --}}
+                <form method="POST" action="{{ route('posts.deleteFile', $media) }}"
+                      class="absolute top-2 right-2"
+                      onsubmit="return confirm('Удалить файл?');">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit"
+                            class="bg-red-500 hover:bg-red-600 text-white w-7 h-7 rounded-full font-bold shadow"
+                            title="Удалить файл">
+                        ×
+                    </button>
+                </form>
+            </div>
+        @endforeach
+    </div>
+    </section>
+    @endif
+    
     <section class="border-t pt-8">
         <h2 class="text-2xl font-semibold mb-4">Комментарии ({{ $post->comments->count() }})</h2>
         @forelse ($post->comments as $comment)

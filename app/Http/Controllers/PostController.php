@@ -9,6 +9,9 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use App\Models\Comment;
 use Illuminate\Support\Facades\Storage;
+use App\Models\Media;
+use Spatie\ImageOptimizer\OptimizerChainFactory;
+use Illuminate\Support\Str; 
 
 class PostController extends Controller
 {
@@ -20,18 +23,20 @@ class PostController extends Controller
     }
 
 
-    public function store(Request $request)
+        public function store(Request $request)
     {
         $validated = $request->validate([
-            'title' => 'required|max:255|unique:posts,title', 
+            'title' => 'required|max:255|unique:posts,title',
             'content' => 'required|min:50',
             'category_id' => 'required|exists:categories,id',
-            'tags' => 'array|exists:tags,id', 
+            'tags' => 'array|exists:tags,id',
             'image' => 'nullable|image|max:2048',
+            'files' => 'nullable|array',                          
+            'files.*' => 'file|mimes:jpg,png,pdf,mp4|max:5120|no_spaces',  
         ]);
 
         $postData = $validated;
-        unset($postData['tags']); 
+        unset($postData['tags'], $postData['files'], $postData['image']);
 
         $post = Post::create($postData + ['user_id' => User::first()->id]);
 
@@ -40,6 +45,20 @@ class PostController extends Controller
         if ($request->hasFile('image')) {
             $path = $request->file('image')->store('posts', 'public');
             $post->update(['image' => $path]);
+        }
+
+        if ($request->hasFile('files')) {
+            foreach ($request->file('files') as $file) {
+                if (Str::startsWith($file->getMimeType(), 'image')) {
+                    OptimizerChainFactory::create()->optimize($file->getRealPath());
+                }
+                $path = $file->store("posts/{$post->id}", 's3-fake'); 
+                Media::create([
+                    'post_id' => $post->id,
+                    'path' => $path,
+                    'type' => $file->getMimeType(),                 
+                ]);
+            }
         }
 
         return redirect()->route('posts.index')->with('success', 'Пост создан!');
@@ -132,14 +151,23 @@ class PostController extends Controller
         return redirect()->route('posts.index')->with('success', 'Пост обновлен!');
     }
 
-    public function destroy(Post $post)
-    {
+        public function destroy(Post $post)
+        {
         if ($post->image) {
             Storage::delete('public/' . $post->image);
         }
-        
+        Storage::disk('s3-fake')->deleteDirectory("posts/{$post->id}");
+
         $post->delete();
-        return redirect()->route('posts.index')->with('success', 'Пост удален!');
+        return redirect()->route('posts.index')->with('success', 'Пост удалён!');
+        }
+
+        public function destroyFile(Media $media)
+    {
+        Storage::disk('s3-fake')->delete($media->path); 
+        $media->delete();                               
+
+        return back()->with('success', 'Файл удалён!');
     }
 
 }

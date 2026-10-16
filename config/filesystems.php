@@ -47,6 +47,13 @@ return [
             'report' => false,
         ],
 
+        's3-fake' => [
+            'driver' => 'local',                              // физически — обычные файлы на диске
+            'root' => storage_path('app/s3-fake'),            // где живут файлы: storage/app/s3-fake
+            'url' => env('APP_URL') . '/storage/s3-fake',     // что вернёт Storage::url()
+            'visibility' => 'public',                         // семантика «публичного» объекта (как в S3)
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),
@@ -59,7 +66,6 @@ return [
             'throw' => false,
             'report' => false,
         ],
-
     ],
 
     /*
@@ -75,6 +81,7 @@ return [
 
     'links' => [
         public_path('storage') => storage_path('app/public'),
+        public_path('storage/s3-fake') => storage_path('app/s3-fake'),
     ],
 
 ];

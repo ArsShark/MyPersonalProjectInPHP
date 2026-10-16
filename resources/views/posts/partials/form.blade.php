@@ -75,6 +75,18 @@
         @endif
     </div>
 
+    @if (! $post)
+    <div>
+        <label class="block text-gray-700 font-medium mb-2">Прикреплённые файлы</label>
+        <input type="file" name="files[]" multiple
+               class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+        @error('files.*')
+            <span class="text-red-500 text-sm mt-1">{{ $message }}</span>
+        @enderror
+        <p class="text-xs text-gray-500 mt-1">jpg, png, pdf, mp4; до 5 МБ на файл. Несколько — Ctrl (Cmd на Mac).</p>
+    </div>
+    @endif
+    
     <!-- Контент -->
     <div>
         <label class="block text-gray-700 font-medium mb-2">Содержание * (мин. 50 символов)</label>

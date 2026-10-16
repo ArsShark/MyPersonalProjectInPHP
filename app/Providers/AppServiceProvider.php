@@ -5,6 +5,7 @@ namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 use App\Models\Category;
 use App\Observers\CategoryObserver;
+use Illuminate\Support\Facades\Validator;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -23,6 +24,12 @@ class AppServiceProvider extends ServiceProvider
     {
         app()->setLocale('ru');
         
-         Category::observe(CategoryObserver::class);
+        Category::observe(CategoryObserver::class);
+
+        Validator::extend('no_spaces', function ($attr, $value, $params) {
+            
+        return !preg_match('/\s/', $value->getClientOriginalName());
+	});
+
     }
 }

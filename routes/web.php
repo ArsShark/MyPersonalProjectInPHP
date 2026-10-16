@@ -13,3 +13,5 @@ Route::get('/post/{slug}', [PageController::class, 'showPost'])
     ->name('post.show');
 
 Route::resource('posts', PostController::class);
+
+Route::delete('/media/{media}', [PostController::class, 'destroyFile'])->name('posts.deleteFile');
