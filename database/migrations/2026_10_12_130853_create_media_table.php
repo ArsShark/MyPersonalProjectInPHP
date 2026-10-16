@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('media', function (Blueprint $table) {
             $table->id();
-            $table->string('path');                                    // путь файла ВНУТРИ диска s3-fake
-            $table->foreignId('post_id')->constrained()->cascadeOnDelete(); // пост удалён → строки media удалены
-            $table->string('type');                                    // MIME-тип: image/jpeg, application/pdf...
+            $table->string('path');                                    
+            $table->foreignId('post_id')->constrained()->cascadeOnDelete(); 
+            $table->string('type');                                    
             $table->timestamps();
         });
     }

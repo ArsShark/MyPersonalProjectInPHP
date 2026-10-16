@@ -33,7 +33,6 @@
             </span>
         @endforeach
     </div>
-    {{-- Лаба 6: галерея прикреплённых файлов (диск s3-fake) --}}
     @if ($post->media->isNotEmpty())
     <section class="mt-8">
     <h3 class="text-xl font-semibold text-gray-900 mb-4">
@@ -44,12 +43,10 @@
         @foreach ($post->media as $media)
             <div class="relative border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm">
                 @if (Str::startsWith($media->type, 'image'))
-                    {{-- Картинки: превью на весь тайл --}}
                     <img src="{{ Storage::disk('s3-fake')->url($media->path) }}"
                          alt="Прикреплённый файл"
                          class="w-full h-48 object-cover">
                 @else
-                    {{-- Всё остальное (pdf, mp4...): плитка со ссылкой --}}
                     <div class="h-48 flex flex-col items-center justify-center p-4 bg-gray-50 text-center">
                         <span class="text-3xl mb-2">
                             @if (Str::startsWith($media->type, 'video'))🎬
@@ -63,8 +60,6 @@
                         <span class="text-xs text-gray-500 mt-1">{{ $media->type }}</span>
                     </div>
                 @endif
-
-                {{-- Кнопка удаления файла (маршрут posts.deleteFile из партии 2) --}}
                 <form method="POST" action="{{ route('posts.deleteFile', $media) }}"
                       class="absolute top-2 right-2"
                       onsubmit="return confirm('Удалить файл?');">
